@@ -2922,24 +2922,33 @@ namespace Mono.Cecil {
 
 		void WriteCustomAttributeValue (TypeReference type, object value)
 		{
-			var etype = type.etype;
+			var typeDef = type.Resolve();
+			var etype = typeDef.etype;
 
 			switch (etype) {
-			case ElementType.String:
-				var @string = (string) value;
-				if (@string == null)
-					WriteByte (0xff);
-				else
-					WriteUTF8String (@string);
-				break;
 			case ElementType.None:
 				if (type.IsTypeOf ("System", "Type"))
 					WriteTypeReference ((TypeReference) value);
-				else
+				else if (typeDef.IsEnum)
 					WriteCustomAttributeEnumValue (type, value);
+				else
+					throw new NotImplementedException("Unhandled case");
+				break;
+			case ElementType.String:
+				var @string = (string) value;
+				WriteUTF8String (@string);
+				break;
+			case ElementType.Type:
+				WriteTypeReference ((TypeReference) value);
+				break;
+			case ElementType.Enum:
+				WriteCustomAttributeEnumValue (type, value);
 				break;
 			default:
-				WritePrimitiveValue (value);
+				if ( typeDef.IsEnum )
+					WriteCustomAttributeEnumValue (type, value);
+				else
+					WritePrimitiveValue (value);
 				break;
 			}
 		}
