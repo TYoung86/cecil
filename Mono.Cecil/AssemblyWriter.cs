@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection;
 using System.Text;
 
 using Mono;
@@ -2943,51 +2944,59 @@ namespace Mono.Cecil {
 			}
 		}
 
-		void WritePrimitiveValue (object value)
-		{
+		void WritePrimitiveValue(object value) {
 			if (value == null)
-				throw new ArgumentNullException ();
-
-			switch (value.GetType ().GetTypeCode ()) {
-			case TypeCode.Boolean:
-				WriteByte ((byte) (((bool) value) ? 1 : 0));
+				throw new ArgumentNullException(nameof(value));
+			while(value != null) {
+				switch (value.GetType().GetTypeCode()) {
+					case TypeCode.Boolean:
+						WriteByte((byte) ((bool) value ? 1 : 0));
+						break;
+					case TypeCode.Byte:
+						WriteByte((byte) value);
+						break;
+					case TypeCode.SByte:
+						WriteSByte((sbyte) value);
+						break;
+					case TypeCode.Int16:
+						WriteInt16((short) value);
+						break;
+					case TypeCode.UInt16:
+						WriteUInt16((ushort) value);
+						break;
+					case TypeCode.Char:
+						WriteInt16((short) (char) value);
+						break;
+					case TypeCode.Int32:
+						WriteInt32((int) value);
+						break;
+					case TypeCode.UInt32:
+						WriteUInt32((uint) value);
+						break;
+					case TypeCode.Single:
+						WriteSingle((float) value);
+						break;
+					case TypeCode.Int64:
+						WriteInt64((long) value);
+						break;
+					case TypeCode.UInt64:
+						WriteUInt64((ulong) value);
+						break;
+					case TypeCode.Double:
+						WriteDouble((double) value);
+						break;
+					default:
+						var valueTypeInfo = value.GetType().GetTypeInfo();
+						if (!valueTypeInfo.IsEnum)
+							throw new NotSupportedException
+							($"Can't write {valueTypeInfo.FullName} as primitive");
+						value = Convert.ChangeType(value, valueTypeInfo.GetEnumUnderlyingType());
+						continue;
+				}
 				break;
-			case TypeCode.Byte:
-				WriteByte ((byte) value);
-				break;
-			case TypeCode.SByte:
-				WriteSByte ((sbyte) value);
-				break;
-			case TypeCode.Int16:
-				WriteInt16 ((short) value);
-				break;
-			case TypeCode.UInt16:
-				WriteUInt16 ((ushort) value);
-				break;
-			case TypeCode.Char:
-				WriteInt16 ((short) (char) value);
-				break;
-			case TypeCode.Int32:
-				WriteInt32 ((int) value);
-				break;
-			case TypeCode.UInt32:
-				WriteUInt32 ((uint) value);
-				break;
-			case TypeCode.Single:
-				WriteSingle ((float) value);
-				break;
-			case TypeCode.Int64:
-				WriteInt64 ((long) value);
-				break;
-			case TypeCode.UInt64:
-				WriteUInt64 ((ulong) value);
-				break;
-			case TypeCode.Double:
-				WriteDouble ((double) value);
-				break;
-			default:
-				throw new NotSupportedException (value.GetType ().FullName);
 			}
+			if (value == null)
+				throw new InvalidCastException(nameof(value));
 		}
 
 		void WriteCustomAttributeEnumValue (TypeReference enum_type, object value)

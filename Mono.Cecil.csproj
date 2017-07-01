@@ -1,20 +1,57 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <ProjectGuid>{D68133BD-1E63-496E-9EDE-4FBDBF77B486}</ProjectGuid>
-    <RootNamespace>Mono.Cecil</RootNamespace>
-    <AssemblyName>Mono.Cecil</AssemblyName>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="ProjectInfo.cs" />
-    <Compile Include="Mono\*.cs" />
-    <Compile Include="Mono.Cecil\*.cs" />
-    <Compile Include="Mono.Cecil.Cil\*.cs" />
-    <Compile Include="Mono.Cecil.Metadata\*.cs" />
-    <Compile Include="Mono.Cecil.PE\*.cs" />
-    <Compile Include="Mono.Collections.Generic\*.cs" />
-    <Compile Include="Mono.Security.Cryptography\*.cs" />
-  </ItemGroup>
-  <Import Project="Mono.Cecil.props" />
-  <Import Project="$(MSBuildCSharpTargets)" Condition=" ! $(NetStandard) " />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard1.6</TargetFramework>
+		<OutputType>Library</OutputType>
+		<RootNamespace>Mono.Cecil</RootNamespace>
+		<AssemblyName>Mono.Cecil</AssemblyName>
+		<Configuration>Release</Configuration>
+		<Platform>AnyCPU</Platform>
+		<PreBuildEvent></PreBuildEvent>
+		<SignAssembly>True</SignAssembly>
+		<AssemblyOriginatorKeyFile>cecil.snk</AssemblyOriginatorKeyFile>
+		<Version>0.10.0-beta6</Version>
+		<Authors>Jb Evain</Authors>
+		<Copyright>Copyright © 2008 - 2015 Jb Evain</Copyright>
+		<Company>Mono</Company>
+		<PackageLicenseUrl>https://raw.githubusercontent.com/jbevain/cecil/master/LICENSE.txt</PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/jbevain/cecil</PackageProjectUrl>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DefineConstants>TRACE;DEBUG;NET_CORE;NETSTANDARD1_6</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <DefineConstants>TRACE;NET_CORE;RELEASE;NETSTANDARD1_6</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Remove="symbols\**" />
+		<Compile Remove="Test\**" />
+		<Compile Remove="_ReSharper.Caches\**" />
+		<Compile Remove="rocks\**" />
+		<EmbeddedResource Remove="symbols\**" />
+		<EmbeddedResource Remove="Test\**" />
+		<EmbeddedResource Remove="_ReSharper.Caches\**" />
+		<EmbeddedResource Remove="rocks\**" />
+		<None Remove="symbols\**" />
+		<None Remove="Test\**" />
+		<None Remove="_ReSharper.Caches\**" />
+		<None Remove="rocks\**" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Remove="Mono.Cecil\AssemblyInfo.cs" />
+	  <Compile Remove="ProjectInfo.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove=".editorconfig" />
+	  <None Remove=".git" />
+	  <None Remove=".gitattributes" />
+	  <None Remove=".gitignore" />
+	  <None Remove=".travis.yml" />
+	  <None Remove="appveyor.yml" />
+	  <None Remove="Mono.Cecil.nunit" />
+	  <None Remove="Mono.Cecil.nuspec" />
+	  <None Remove="Mono.Cecil.props" />
+	  <None Remove="Mono.Cecil.sln.DotSettings" />
+	  <None Remove="Mono.Cecil.Tests.props" />
+	  <None Remove="NetStandard.props" />
+	</ItemGroup>
 </Project>

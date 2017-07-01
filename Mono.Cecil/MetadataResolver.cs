@@ -101,7 +101,9 @@ namespace Mono.Cecil {
 				var assembly = assembly_resolver.Resolve ((AssemblyNameReference) scope);
 				if (assembly == null)
 					return null;
-
+				// pass on the assembly resolver to the resolved assembly
+				assembly.MainModule.assembly_resolver
+					= new Disposable<IAssemblyResolver>(assembly_resolver,false);
 				return GetType (assembly.MainModule, type);
 			case MetadataScopeType.ModuleDefinition:
 				return GetType ((ModuleDefinition) scope, type);

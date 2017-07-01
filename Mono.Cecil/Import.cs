@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mono.Collections.Generic;
 using SR = System.Reflection;
 
@@ -488,17 +489,48 @@ namespace Mono.Cecil {
 			this.module = module;
 		}
 
+		private ISet<MetadataType> SystemMetadataTypes = new HashSet<MetadataType> {
+			MetadataType.SByte,
+			MetadataType.Int16,
+			MetadataType.Int32,
+			MetadataType.Int64,
+			MetadataType.Byte,
+			MetadataType.UInt16,
+			MetadataType.UInt32,
+			MetadataType.UInt64,
+			MetadataType.Boolean,
+			MetadataType.Char,
+			MetadataType.Single,
+			MetadataType.Double,
+			MetadataType.Void,
+			MetadataType.IntPtr,
+			MetadataType.UIntPtr,
+			MetadataType.Object,
+		};
+
 		TypeReference ImportType (TypeReference type, ImportGenericContext context)
 		{
+			if (type.IsPrimitive)
+				return type;
 			if (type.IsTypeSpecification ())
 				return ImportTypeSpecification (type, context);
+
+			if (SystemMetadataTypes.Contains (type.MetadataType))
+				return module.TypeSystem.LookupType (type.Namespace, type.Name);
 
 			var reference = new TypeReference (
 				type.Namespace,
 				type.Name,
 				module,
-				ImportScope (type.Scope),
+				type.Scope,
 				type.IsValueType);
+
+			if (type.Scope is ModuleDefinition md) {
+				if (Equals(type.Scope, md.TypeSystem.CoreLibrary))
+					return reference;
+			}
+
+			reference.Scope = ImportScope (type.Scope, reference);
 
 			MetadataSystem.TryProcessPrimitiveTypeReference (reference);
 
@@ -511,14 +543,14 @@ namespace Mono.Cecil {
 			return reference;
 		}
 
-		IMetadataScope ImportScope (IMetadataScope scope)
+		IMetadataScope ImportScope (IMetadataScope scope, TypeReference reference = null)
 		{
 			switch (scope.MetadataScopeType) {
 			case MetadataScopeType.AssemblyNameReference:
-				return ImportAssemblyName ((AssemblyNameReference) scope);
+				return ImportAssemblyName ((AssemblyNameReference) scope, reference);
 			case MetadataScopeType.ModuleDefinition:
 				if (scope == module) return scope;
-				return ImportAssemblyName (((ModuleDefinition) scope).Assembly.Name);
+				return ImportAssemblyName (((ModuleDefinition) scope).Assembly.Name, reference);
 			case MetadataScopeType.ModuleReference:
 				throw new NotImplementedException ();
 			}
@@ -526,11 +558,22 @@ namespace Mono.Cecil {
 			throw new NotSupportedException ();
 		}
 
-		AssemblyNameReference ImportAssemblyName (AssemblyNameReference name)
+		AssemblyNameReference ImportAssemblyName (AssemblyNameReference name, TypeReference typeReference = null)
 		{
 			AssemblyNameReference reference;
 			if (module.TryGetAssemblyNameReference (name, out reference))
 				return reference;
+
+			if (typeReference != null) {
+				var existing = module.AssemblyReferences
+					.FirstOrDefault(asmRef => Equals(asmRef.Name, name.Name)
+											&& Equals(asmRef.PublicKey, name.PublicKey));
+
+				if (existing != null)
+					if (module.AssemblyResolver.Resolve(existing).Modules
+						.Any(m => m.ExportedTypes.Any( t => Equals(t.FullName, typeReference.FullName))))
+						return existing;
+			}
 
 			reference = new AssemblyNameReference (name.Name, name.Version) {
 				Culture = name.Culture,
