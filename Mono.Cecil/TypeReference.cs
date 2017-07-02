@@ -348,5 +348,28 @@ namespace Mono.Cecil {
 
 			return type;
 		}
+
+		public static TypeReference CreateTypeReference(TypeReference type, ModuleDefinition module)
+		{
+
+			if (!type.IsNested) {
+				return new TypeReference(
+					type.Namespace,
+					type.Name,
+					module,
+					type.Scope,
+					type.IsValueType);
+			}
+			
+			return new TypeReference (
+					"",
+					type.Name,
+					module,
+					type.Scope,
+					type.IsValueType) {
+				DeclaringType = CreateTypeReference(type.DeclaringType, module)
+			};
+
+		}
 	}
 }

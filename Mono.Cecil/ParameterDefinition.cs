@@ -31,6 +31,11 @@ namespace Mono.Cecil {
 			get { return method; }
 		}
 
+		public override MetadataToken MetadataToken {
+			get { return token ?? default(MetadataToken); }
+			set { token = value; }
+		}
+
 		public int Sequence {
 			get {
 				if (method == null)

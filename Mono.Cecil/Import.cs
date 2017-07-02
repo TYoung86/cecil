@@ -510,20 +510,13 @@ namespace Mono.Cecil {
 
 		TypeReference ImportType (TypeReference type, ImportGenericContext context)
 		{
-			if (type.IsPrimitive)
-				return type;
 			if (type.IsTypeSpecification ())
 				return ImportTypeSpecification (type, context);
 
 			if (SystemMetadataTypes.Contains (type.MetadataType))
 				return module.TypeSystem.LookupType (type.Namespace, type.Name);
 
-			var reference = new TypeReference (
-				type.Namespace,
-				type.Name,
-				module,
-				type.Scope,
-				type.IsValueType);
+			var reference = Mixin.CreateTypeReference(type, module);
 
 			if (type.Scope is ModuleDefinition md) {
 				if (Equals(type.Scope, md.TypeSystem.CoreLibrary))

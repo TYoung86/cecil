@@ -9,15 +9,17 @@
 //
 
 using System;
+using System.Linq;
 
 namespace Mono.Cecil {
 
-	public abstract class ParameterReference : IMetadataTokenProvider {
+	public class ParameterReference : IMetadataTokenProvider {
 
 		string name;
 		internal int index = -1;
 		protected TypeReference parameter_type;
-		internal MetadataToken token;
+		internal IMethodSignature method;
+		internal MetadataToken? token;
 
 		public string Name {
 			get { return name; }
@@ -33,8 +35,12 @@ namespace Mono.Cecil {
 			set { parameter_type = value; }
 		}
 
-		public MetadataToken MetadataToken {
-			get { return token; }
+		public IMethodSignature Method {
+			get { return method; }
+		}
+
+		public virtual MetadataToken MetadataToken {
+			get { return token ?? Resolve().MetadataToken; }
 			set { token = value; }
 		}
 
@@ -46,12 +52,66 @@ namespace Mono.Cecil {
 			this.name = name ?? string.Empty;
 			this.parameter_type = parameterType;
 		}
+		
+		internal ParameterReference (string name, int index, TypeReference parameterType)
+		{
+			if (parameterType == null)
+				throw new ArgumentNullException ("parameterType");
+			
+			this.name = name ?? string.Empty;
+			this.index = index >= -1 ? index : -1;
+			this.parameter_type = parameterType;
+		}
+		
+		internal ParameterReference (int index, TypeReference parameterType)
+		{
+			if (parameterType == null)
+				throw new ArgumentNullException ("parameterType");
+
+			this.index = index >= -1 ? index : -1;
+			this.parameter_type = parameterType;
+		}
+
+		public ParameterReference (string name, int index, TypeReference parameterType, IMethodSignature method)
+			: this(name, index, parameterType)
+		{
+			this.method = method;
+		}
+
+		public ParameterReference (int index, TypeReference parameterType, IMethodSignature method)
+			: this(index, parameterType)
+		{
+			this.method = method;
+		}
+		
+		public ParameterReference (string name, TypeReference parameterType, IMethodSignature method)
+			: this(name, parameterType)
+		{
+			this.method = method;
+		}
 
 		public override string ToString ()
 		{
 			return name;
 		}
 
-		public abstract ParameterDefinition Resolve ();
+		public virtual ParameterDefinition Resolve ()
+		{
+			if (index >= 0 && index < method.Parameters.Count) {
+				var p = method.Parameters[index];
+				if (p.Name == name)
+					return p;
+			}
+			return ResolveByName();
+		}
+
+		internal ParameterDefinition ResolveByName ()
+		{
+			foreach (var p in method.Parameters) {
+				if (p.Name == name)
+					return p;
+			}
+			return null;
+		}
 	}
 }

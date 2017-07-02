@@ -3019,14 +3019,16 @@ namespace Mono.Cecil {
 
 		void WriteCustomAttributeFieldOrPropType (TypeReference type)
 		{
+
+			// WriteCustomAttributeValue
 			if (type.IsArray) {
 				var array = (ArrayType) type;
 				WriteElementType (ElementType.SzArray);
 				WriteCustomAttributeFieldOrPropType (array.ElementType);
 				return;
 			}
-
-			var etype = type.etype;
+			var typeDef = type.Resolve();
+			var etype = typeDef.etype;
 
 			switch (etype) {
 			case ElementType.Object:
@@ -3035,9 +3037,12 @@ namespace Mono.Cecil {
 			case ElementType.None:
 				if (type.IsTypeOf ("System", "Type"))
 					WriteElementType (ElementType.Type);
+				else if (typeDef.IsEnum) {
+					WriteElementType(ElementType.Enum);
+					WriteTypeReference(type);
+				}
 				else {
-					WriteElementType (ElementType.Enum);
-					WriteTypeReference (type);
+					throw new NotImplementedException();
 				}
 				return;
 			default:
