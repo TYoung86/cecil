@@ -2922,14 +2922,13 @@ namespace Mono.Cecil {
 
 		void WriteCustomAttributeValue (TypeReference type, object value)
 		{
-			var typeDef = type.Resolve();
-			var etype = typeDef.etype;
+			var etype = type.etype;
 
 			switch (etype) {
 			case ElementType.None:
 				if (type.IsTypeOf ("System", "Type"))
 					WriteTypeReference ((TypeReference) value);
-				else if (typeDef.IsEnum)
+				else if ( type.Resolve().IsEnum )
 					WriteCustomAttributeEnumValue (type, value);
 				else
 					throw new NotImplementedException("Unhandled case");
@@ -2945,7 +2944,7 @@ namespace Mono.Cecil {
 				WriteCustomAttributeEnumValue (type, value);
 				break;
 			default:
-				if ( typeDef.IsEnum )
+				if ( type.Resolve().IsEnum )
 					WriteCustomAttributeEnumValue (type, value);
 				else
 					WritePrimitiveValue (value);
@@ -3027,8 +3026,8 @@ namespace Mono.Cecil {
 				WriteCustomAttributeFieldOrPropType (array.ElementType);
 				return;
 			}
-			var typeDef = type.Resolve();
-			var etype = typeDef.etype;
+
+			var etype = type.etype;
 
 			switch (etype) {
 			case ElementType.Object:
@@ -3037,7 +3036,7 @@ namespace Mono.Cecil {
 			case ElementType.None:
 				if (type.IsTypeOf ("System", "Type"))
 					WriteElementType (ElementType.Type);
-				else if (typeDef.IsEnum) {
+				else if (type.Resolve().IsEnum) {
 					WriteElementType(ElementType.Enum);
 					WriteTypeReference(type);
 				}

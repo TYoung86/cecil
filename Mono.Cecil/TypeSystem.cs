@@ -275,6 +275,31 @@ namespace Mono.Cecil {
 		public TypeReference TypedReference {
 			get { return type_typedref ?? (LookupSystemValueType (ref type_typedref, "TypedReference", ElementType.TypedByRef)); }
 		}
+
+		internal TypeReference LookupSystemNativeType (string name)
+		{
+			switch (name) {
+				case "Object": return Object;
+				case "Void": return Void;
+				case "Boolean": return Boolean;
+				case "Char": return Char;
+				case "SByte": return SByte;
+				case "Byte": return Byte;
+				case "Int16": return Int16;
+				case "UInt16": return UInt16;
+				case "Int32": return Int32;
+				case "UInt32": return UInt32;
+				case "Int64": return Int64;
+				case "UInt64": return UInt64;
+				case "Single": return Single;
+				case "Double": return Double;
+				case "IntPtr": return IntPtr;
+				case "UIntPtr": return UIntPtr;
+				case "String": return String;
+				case "TypedReference": return TypedReference;
+				default: return null;
+			}
+		}
 	}
 
 	static partial class Mixin {
@@ -320,6 +345,17 @@ namespace Mono.Cecil {
 				|| name == system_runtime
 				|| name == system_private_corelib
 				|| name == netstandard;
+		}
+
+		public static TypeReference GetNativeType (this TypeReference typeRef)
+		{
+			if (typeRef.Module.IsCoreLibrary())
+				return null;
+			if (typeRef.Namespace != "System")
+				return null;
+			var found = typeRef.Module.TypeSystem
+				.LookupSystemNativeType(typeRef.Name);
+			return found;
 		}
 	}
 }

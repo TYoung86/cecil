@@ -9,7 +9,7 @@
 //
 
 using System;
-
+using System.Diagnostics;
 using Mono.Cecil.Metadata;
 using Mono.Collections.Generic;
 
@@ -56,7 +56,31 @@ namespace Mono.Cecil {
 		internal IMetadataScope scope;
 		internal ModuleDefinition module;
 
-		internal ElementType etype = ElementType.None;
+		private ElementType? _etype;
+
+		internal ElementType etype {
+			get {
+				if (_etype != null)
+					return _etype.Value;
+				var native = this.GetNativeType();
+				if (native != null) {
+					var netype = native.etype;
+					_etype = netype;
+					return netype;
+				}
+				return ElementType.None;
+			}
+			set {
+				/*
+				// wtf: invoking the CustomAttributes property getter on a TypeDefinition properly sets the etype
+				if (value == ElementType.Void) {
+					Debug.Write("etype being set by ...");
+					Debug.WriteLine(Environment.StackTrace);
+				}
+				*/
+				_etype = value;
+			}
+		}
 
 		string fullname;
 
