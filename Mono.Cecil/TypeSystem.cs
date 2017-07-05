@@ -151,6 +151,7 @@ namespace Mono.Cecil {
 		TypeReference type_string;
 		TypeReference type_typedref;
 		TypeReference type_valuetype;
+		TypeReference type_enum;
 
 		TypeSystem (ModuleDefinition module)
 		{
@@ -281,6 +282,10 @@ namespace Mono.Cecil {
 			get { return type_valuetype ?? (LookupSystemValueType (ref type_valuetype, "ValueType", ElementType.ValueType)); }
 		}
 
+		public TypeReference Enum {
+			get { return type_enum ?? (LookupSystemValueType (ref type_enum, "Enum", ElementType.Enum)); }
+		}
+
 		internal TypeReference LookupSystemNativeType (string name)
 		{
 			switch (name) {
@@ -303,6 +308,7 @@ namespace Mono.Cecil {
 				case "String": return String;
 				case "TypedReference": return TypedReference;
 				case "ValueType": return ValueType;
+				case "Enum": return Enum;
 				default: return null;
 			}
 		}
