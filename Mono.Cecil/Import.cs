@@ -836,10 +836,15 @@ namespace Mono.Cecil {
 				return false;
 			if (!Equals (a.Version, b.Version))
 				return false;
-			if (a.Culture != b.Culture)
+			
+			var aCultureNone = string.IsNullOrEmpty(a.Culture);
+			var bCultureNone = string.IsNullOrEmpty(b.Culture);
+			if (!(aCultureNone && bCultureNone) && a.Culture != b.Culture)
 				return false;
+
 			if (!Equals (a.PublicKeyToken, b.PublicKeyToken))
 				return false;
+
 			return true;
 		}
 	}
